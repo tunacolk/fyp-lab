@@ -50,3 +50,13 @@ def test_aa_false_positive_rate_near_alpha():
     rs = RecSys(ds, n_cand=30).fit()
     fpr = aa_false_positive_rate(ds, rs.recommend_scores(ds.warm_users, "mf"), n_sims=100)
     assert 0.0 <= fpr <= 0.12
+
+
+def test_paired_bootstrap_detects_real_and_null_differences():
+    from fyp.significance import paired_bootstrap
+    rng = np.random.default_rng(0)
+    a = rng.normal(0.1, 0.05, 400)
+    real = paired_bootstrap(a, a + 0.03 + rng.normal(0, 0.02, 400))
+    null = paired_bootstrap(a, a + rng.normal(0, 0.02, 400))
+    assert real["ci95"][0] > 0 and real["p"] < 0.01
+    assert null["ci95"][0] < 0 < null["ci95"][1]
